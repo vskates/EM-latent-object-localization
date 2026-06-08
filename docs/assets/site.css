@@ -115,6 +115,18 @@ img {
   text-transform: uppercase;
 }
 
+.author-line {
+  margin: -4px 0 18px;
+  color: #eef4ff;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.author-line a {
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.72);
+}
+
 h1,
 h2,
 h3 {
