@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EM for Latent Object Localization in Noisy Images</title>
+  <meta name="description" content="A research-style work sample deriving and implementing soft and hard EM for latent object localization in heavily corrupted images.">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [["\\(", "\\)"], ["$", "$"]] },
+      svg: { fontCache: "global" }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="brand" href="#top">EM Localization</a>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#experiments">Experiments</a>
+      <a href="#results">Results</a>
+      <a href="#limitations">Limitations</a>
+      <a href="#reproduce">Reproduce</a>
+    </div>
+  </nav>
+
+  <header id="top" class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">Probabilistic graphical models · latent variable inference · EM</p>
+      <h1>EM for Latent Object Localization in Noisy Images</h1>
+      <p class="subtitle">
+        A reproducible inference project deriving and implementing soft EM and hard EM to recover a hidden object,
+        a static background, a noise scale, and a prior over object locations from heavily corrupted observations.
+      </p>
+      <div class="actions">
+        <a class="button primary" href="assets/technical-report.pdf">Read Technical Report</a>
+        <a class="button" href="#method">See the Derivation</a>
+        <a class="button" href="https://github.com/vskates/em-latent-object-localization">View Code</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="overview" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Overview</p>
+            <h2>From coursework to a compact research work sample.</h2>
+          </div>
+          <p class="lead">
+            This project began as an EM assignment on noisy image reconstruction. I extended it with a research-style
+            write-up, stable implementation details, multi-start training, ablations, visual diagnostics, and a careful
+            discussion of what the model can and cannot identify.
+          </p>
+        </div>
+
+        <div class="grid four">
+          <div class="metric">
+            <b>Soft EM</b>
+            <span>Uses the full posterior distribution over possible object locations.</span>
+          </div>
+          <div class="metric">
+            <b>Hard EM</b>
+            <span>Uses MAP locations for faster but more brittle point-estimate updates.</span>
+          </div>
+          <div class="metric">
+            <b>1.0</b>
+            <span>Verified final normalization of the learned location prior \(A\).</span>
+          </div>
+          <div class="metric">
+            <b>-21411.89</b>
+            <span>Final synthetic-data lower bound after the corrected EM implementation.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band soft">
+      <div class="wrap model-row">
+        <div>
+          <p class="section-kicker">Problem setup</p>
+          <h2>A latent-coordinate image model.</h2>
+          <p class="lead">
+            Each image contains a shared static background \(B\), an object \(F\), and a hidden top-left coordinate
+            \(d_k\). Pixels are corrupted by independent Gaussian noise with standard deviation \(s\).
+          </p>
+          <ul class="note-list" aria-label="Model components">
+            <li>The latent variable is the object location \(d_k = (d_k^h, d_k^w)\).</li>
+            <li>The prior over locations is categorical: \(p(d_k=z \mid A)=A_z\).</li>
+            <li>The goal is maximum likelihood estimation of \(A, F, B, s^2\) from incomplete observations.</li>
+          </ul>
+        </div>
+        <div class="diagram">
+          <img src="assets/graphical-model.svg" alt="Plate diagram: A points to latent location d_k, and d_k with F, B and s squared points to observed image X_k.">
+        </div>
+      </div>
+    </section>
+
+    <section id="method" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Method</p>
+            <h2>Closed-form EM with log-space posterior inference.</h2>
+          </div>
+          <p class="lead">
+            The derivation follows the standard EM lower-bound view: infer the posterior over latent coordinates,
+            then maximize the expected complete-data log likelihood. The implementation keeps posterior computation
+            in log space for numerical stability.
+          </p>
+        </div>
+
+        <div class="grid two">
+          <div class="equation">
+            \[
+            q_k(z) =
+            p(d_k=z \mid X_k,\theta,A)
+            =
+            \operatorname{softmax}_z
+            \left(\log A_z + \log p(X_k \mid d_k=z,\theta)\right)
+            \]
+          </div>
+          <div class="equation">
+            \[
+            q_k^{hard}(z) =
+            \begin{cases}
+            1, & z = \arg\max_{z'} q_k(z')\\
+            0, & \text{otherwise}
+            \end{cases}
+            \]
+          </div>
+        </div>
+
+        <div class="grid two" style="margin-top:18px">
+          <div class="equation">
+            \[
+            A_z = \frac{1}{K}\sum_{k=1}^{K}q_k(z),
+            \qquad
+            F(a,b)=\frac{1}{K}\sum_k\sum_z q_k(z)X_k(u+a,v+b)
+            \]
+          </div>
+          <div class="equation">
+            \[
+            \mathcal{L}(q,\theta,A)=
+            \sum_k\sum_z q_k(z)
+            \left[
+            \log A_z+\log p(X_k\mid z,\theta)-\log q_k(z)
+            \right]
+            \]
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experiments" class="band soft">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Experiments</p>
+            <h2>Ablations over noise, sample size, initialization, and hard decisions.</h2>
+          </div>
+          <p class="lead">
+            The experiments are designed to surface both successful recovery and failure modes. EM is non-convex,
+            so the reported analysis emphasizes initialization sensitivity, normalized lower bounds, runtime, and
+            reconstruction quality rather than only showing the best image.
+          </p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Experiment</th>
+                <th>Question</th>
+                <th>Diagnostic</th>
+                <th>Main observation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="pill green">Synthetic recovery</span></td>
+                <td>Can EM recover \(F\) and \(B\) when the model assumptions hold?</td>
+                <td>Recovered object/background, final ELBO, estimated \(s\).</td>
+                <td>The toy object and background are recovered cleanly after the corrected M-step.</td>
+              </tr>
+              <tr>
+                <td><span class="pill">Initialization sweep</span></td>
+                <td>How much do random starts matter?</td>
+                <td>Final ELBO and MSE across seeds.</td>
+                <td>Best and worst starts differ sharply, which supports multi-start EM.</td>
+              </tr>
+              <tr>
+                <td><span class="pill">Noise and sample size</span></td>
+                <td>How do \(K\) and noise affect reconstruction?</td>
+                <td>\(\mathcal{L}/(KHW)\), object MSE, background MSE, estimated \(s\).</td>
+                <td>More data generally stabilizes recovery; noise weakens location evidence.</td>
+              </tr>
+              <tr>
+                <td><span class="pill amber">Soft vs hard EM</span></td>
+                <td>What is the cost of collapsing uncertainty to MAP coordinates?</td>
+                <td>Runtime, final lower bound, reconstruction quality.</td>
+                <td>Hard EM is faster on the toy case, but soft EM is the safer default in ambiguous settings.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="results" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Results</p>
+            <h2>Visual diagnostics make the inference behavior inspectable.</h2>
+          </div>
+          <p class="lead">
+            The figures below show the main outputs used for debugging and interpretation: synthetic recovery,
+            real-data reconstruction, lower-bound behavior, and robustness checks.
+          </p>
+        </div>
+
+        <div class="grid two">
+          <figure class="figure">
+            <img src="assets/toy_reconstruction.png" alt="Synthetic reconstruction comparing true and estimated object and background for soft and hard EM.">
+            <figcaption>Synthetic recovery: the recovered object and background closely match the ground truth.</figcaption>
+          </figure>
+          <figure class="figure">
+            <img src="assets/real_reconstruction.png" alt="Real noisy data visualization with sample frame, mean image, face estimate, smoothed face estimate, and A heatmap.">
+            <figcaption>Real noisy data: the object structure becomes visible only after contrast normalization and smoothing.</figcaption>
+          </figure>
+          <figure class="figure">
+            <img src="assets/data2_elbo.png" alt="ELBO curve on data2 showing a flat lower bound across iterations.">
+            <figcaption>ELBO on a hard real subset: the posterior becomes sharply peaked almost immediately.</figcaption>
+          </figure>
+          <figure class="figure">
+            <img src="assets/data2_noise_dependence.png" alt="Noise-dependence plots showing normalized ELBO and face contrast versus added Gaussian noise.">
+            <figcaption>Noise dependence: extra corruption lowers visible face contrast; ELBO alone needs careful interpretation.</figcaption>
+          </figure>
+        </div>
+
+        <figure class="figure" style="margin-top:18px">
+          <img src="assets/data2_final_visualization.png" alt="Second real-data visualization with noisy sample, mean image, estimated face, smoothed estimate, and A heatmap.">
+          <figcaption>Additional real-data visualization: a noisier but still interpretable reconstruction view.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="limitations" class="band soft">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Failure modes and safety relevance</p>
+            <h2>The useful part is not pretending the model always works.</h2>
+          </div>
+          <p class="lead">
+            This is not an AI safety result by itself. I use it as evidence of transferable skills: probabilistic
+            modeling under uncertainty, inference implementation, experiment design, ablations, and clear reporting
+            of assumptions and limitations.
+          </p>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <h3>Identifiability and failure modes</h3>
+            <ul class="note-list">
+              <li>If the object resembles the background, location evidence becomes weak.</li>
+              <li>If \(K\) is too small, the model can absorb object pixels into the background estimate.</li>
+              <li>If initialization makes \(A\) too concentrated, hard EM can commit to wrong locations early.</li>
+              <li>If noise overwhelms object/background contrast, posterior mass over coordinates becomes diffuse.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Bayesian extension</h3>
+            <ul class="note-list">
+              <li>A Dirichlet prior on \(A\) could smooth the coordinate prior.</li>
+              <li>Gaussian priors on \(F\) and \(B\) could regularize pixel estimates.</li>
+              <li>An inverse-gamma prior on \(s^2\) could make noise estimation less brittle.</li>
+              <li>Variational Bayes or MCMC would expose posterior uncertainty over parameters.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reproduce" class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Reproducibility</p>
+            <h2>Static page, reproducible code.</h2>
+          </div>
+          <p class="lead">
+            GitHub Pages serves only static files, so the figures here are pre-generated. The Python scripts in the
+            repository regenerate the report figures, metrics, and diagnostics.
+          </p>
+        </div>
+
+        <pre class="code"><code>python3 run_tests.py
+python3 run_experiments.py
+python3 data2_analysis.py
+python3 clip_effect_analysis.py
+pdflatex -interaction=nonstopmode REPORT.tex</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>EM for Latent Object Localization in Noisy Images</span>
+      <span><a href="assets/technical-report.pdf">Technical report</a> · <a href="https://github.com/vskates/em-latent-object-localization">Repository</a></span>
+    </div>
+  </footer>
+</body>
+</html>
