@@ -25,4 +25,4 @@ python3 clip_effect_analysis.py
 pdflatex -interaction=nonstopmode REPORT.tex
 ```
 
-The technical report is available as `REPORT.pdf`; the static site is served from `docs/`.
+The static project page is served from `docs/`.
