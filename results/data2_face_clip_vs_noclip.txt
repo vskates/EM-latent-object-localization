@@ -1,0 +1,2 @@
+with clip: elbo_norm=-6.059538, sigma=103.592, face_contrast=39.807, data_std=108.421
+without clip: elbo_norm=-6.124799, sigma=110.578, face_contrast=44.311, data_std=115.743

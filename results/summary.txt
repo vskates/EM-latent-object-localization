@@ -1,0 +1,7 @@
+Toy EM final L: -21411.885338
+Toy hard EM final L: -21411.885338
+Toy EM sigma: 0.587191
+Toy hard EM sigma: 0.587191
+Real EM subset final L: -1019025.623918
+Real EM subset sigma: 104.229079
+Real preview sigma: 112.480595

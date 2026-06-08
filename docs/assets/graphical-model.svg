@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-labelledby="title desc">
+  <title id="title">Plate diagram for latent object localization</title>
+  <desc id="desc">A points to latent location d k, and d k together with F, B, and sigma squared points to observed image X k inside a plate over k.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2456a6"/>
+    </marker>
+    <style>
+      .box{fill:#ffffff;stroke:#d9dfeb;stroke-width:2}
+      .latent{fill:#e8effc;stroke:#2456a6;stroke-width:2}
+      .obs{fill:#e4f4ee;stroke:#16845f;stroke-width:2}
+      .txt{font:600 24px system-ui,Segoe UI,sans-serif;fill:#172033}
+      .sub{font:500 16px system-ui,Segoe UI,sans-serif;fill:#5b6475}
+      .plate{fill:none;stroke:#b8c2d6;stroke-width:2;stroke-dasharray:8 8}
+      .arrow{stroke:#2456a6;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect x="30" y="30" width="660" height="330" rx="18" class="plate"/>
+  <text x="570" y="335" class="sub">k = 1,...,K</text>
+  <circle cx="148" cy="112" r="48" class="latent"/>
+  <text x="137" y="121" class="txt">A</text>
+  <circle cx="340" cy="112" r="48" class="latent"/>
+  <text x="319" y="121" class="txt">d<tspan baseline-shift="sub" font-size="15">k</tspan></text>
+  <rect x="500" y="78" width="96" height="68" rx="10" class="obs"/>
+  <text x="527" y="121" class="txt">X<tspan baseline-shift="sub" font-size="15">k</tspan></text>
+  <rect x="146" y="236" width="102" height="70" rx="10" class="box"/>
+  <text x="166" y="280" class="txt">F, B</text>
+  <rect x="306" y="236" width="92" height="70" rx="10" class="box"/>
+  <text x="328" y="280" class="txt">s<tspan baseline-shift="super" font-size="15">2</tspan></text>
+  <path d="M196 112 C232 112 264 112 291 112" class="arrow"/>
+  <path d="M388 112 C424 112 458 112 493 112" class="arrow"/>
+  <path d="M232 236 C298 190 390 160 495 130" class="arrow"/>
+  <path d="M374 236 C420 196 461 160 503 131" class="arrow"/>
+  <text x="82" y="48" class="sub">coordinate prior</text>
+  <text x="295" y="48" class="sub">latent location</text>
+  <text x="486" y="48" class="sub">observed image</text>
+</svg>
