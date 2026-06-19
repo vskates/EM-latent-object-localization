@@ -10,7 +10,7 @@
 </tr>
 </table>
 
-## Method
+## Method:
 
 A collection of noisy grayscale images is modeled with a shared background, a foreground object, and a latent object location for each image.
 
