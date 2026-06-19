@@ -5,7 +5,7 @@
 <td bgcolor="#f6f8fa">
 <b>Contribution.</b> Latent object localization in heavily corrupted images is considered under a probabilistic latent-variable model with unknown object position, background, object template, noise level, and location prior. Soft EM and hard EM are studied in the same setting, with the central result that uncertainty-aware soft EM yields more stable reconstruction and model fitting than MAP-style hard EM under severe noise and ambiguous localization. On synthetic and real noisy images, accurate foreground/background recovery and robust latent-location estimation are obtained.<br><br>
 <b>Author:</b> Ekaterina Vasiagina<br>
-<b>Project page:</b> <a href="https://vskates.github.io/em-latent-object-localization/">Project page</a>
+<b>Project page:</b> <a href="https://vskates.github.io/EM-latent-object-localization/">Project page</a>
 </td>
 </tr>
 </table>
